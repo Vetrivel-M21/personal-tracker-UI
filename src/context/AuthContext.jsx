@@ -52,8 +52,26 @@ export function AuthProvider({ children }) {
     return withStatsUser;
   }, []);
 
-  const signUp = useCallback(async (username, password, displayName) => {
-    const me = await apiClient.signup(username, password, displayName);
+  // Signup no longer logs the user in directly - it creates the account and
+  // emails a verification code, returning {pending_verification, username,
+  // email_hint}. verifyEmail() below is what actually establishes a session.
+  const signUp = useCallback(async (username, password, displayName, email, dateOfBirth) => {
+    return apiClient.signup(username, password, displayName, email, dateOfBirth);
+  }, []);
+
+  const verifyEmail = useCallback(async (username, code) => {
+    const me = await apiClient.verifyEmail(username, code);
+    const withStatsUser = await withStats(me);
+    setUser(withStatsUser);
+    return withStatsUser;
+  }, []);
+
+  const resendVerification = useCallback(async (username) => {
+    return apiClient.resendVerification(username);
+  }, []);
+
+  const loginWithGoogle = useCallback(async (credential) => {
+    const me = await apiClient.loginWithGoogle(credential);
     const withStatsUser = await withStats(me);
     setUser(withStatsUser);
     return withStatsUser;
@@ -72,7 +90,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signUp, logout, updateUser }}>
+    <AuthContext.Provider value={{
+      user, loading, login, signUp, verifyEmail, resendVerification, loginWithGoogle, logout, updateUser,
+    }}>
       {children}
     </AuthContext.Provider>
   );

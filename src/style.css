@@ -240,14 +240,22 @@ body {
 .logo-icon {
     width: 42px;
     height: 42px;
-    background: linear-gradient(135deg, var(--primary), var(--orange));
     border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
     font-size: 1.25rem;
     color: white;
     box-shadow: 0 4px 15px rgba(34, 211, 238, 0.4);
+}
+
+.logo-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.6);
+    display: block;
 }
 
 .brand h2 {
@@ -1048,6 +1056,25 @@ select:focus {
     font-size: 1.2rem;
 }
 
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.25rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
 .auth-tabs {
     display: flex;
     border-bottom: 1px solid var(--border-color);
@@ -1072,6 +1099,63 @@ select:focus {
 .auth-tab.active {
     color: var(--primary);
     border-color: var(--primary);
+}
+
+.auth-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.auth-step-dot {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    background: transparent;
+    transition: var(--transition-fast);
+}
+
+.auth-step-dot.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--bg-main);
+}
+
+.auth-step-track {
+    width: 48px;
+    height: 2px;
+    background: var(--border-color);
+    transition: var(--transition-fast);
+}
+
+.auth-step-track.filled {
+    background: var(--primary);
+}
+
+.auth-step-label {
+    text-align: center;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: -0.5rem;
+}
+
+.auth-step-nav {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.auth-step-nav .btn {
+    flex: 1;
+    justify-content: center;
 }
 
 .auth-form {
@@ -1252,7 +1336,6 @@ body.light-theme .mobile-nav-header {
 .mobile-brand .logo-icon {
     width: 32px;
     height: 32px;
-    background: linear-gradient(135deg, var(--primary), var(--orange));
     border-radius: 8px;
     display: flex;
     align-items: center;

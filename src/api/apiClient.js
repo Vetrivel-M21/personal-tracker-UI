@@ -65,14 +65,24 @@ function qs(params) {
 
 export const apiClient = {
   // --- Auth ---
-  signup(username, password, displayName) {
-    return request('POST', '/api/auth/signup', { username, password, display_name: displayName });
+  signup(username, password, displayName, email, dateOfBirth) {
+    return request('POST', '/api/auth/signup',
+      { username, password, display_name: displayName, email, date_of_birth: dateOfBirth });
   },
   login(username, password) {
     return request('POST', '/api/auth/login', { username, password });
   },
   logout() {
     return request('POST', '/api/auth/logout');
+  },
+  loginWithGoogle(credential) {
+    return request('POST', '/api/auth/google', { credential });
+  },
+  verifyEmail(username, code) {
+    return request('POST', '/api/auth/verify-email', { username, code });
+  },
+  resendVerification(username) {
+    return request('POST', '/api/auth/resend-verification', { username });
   },
 
   // --- Profile ---

@@ -9,6 +9,7 @@ import HabitManager from '../components/HabitManager.jsx';
 export default function Settings() {
   const { user, updateUser } = useAuth();
   const [displayName, setDisplayName] = useState(user?.display_name || '');
+  const [dateOfBirth, setDateOfBirth] = useState(user?.date_of_birth || '');
   const [savingName, setSavingName] = useState(false);
   const [soundOn, setSoundOn] = useState(isSoundEnabled());
 
@@ -33,8 +34,8 @@ export default function Settings() {
     }
     setSavingName(true);
     try {
-      const updated = await apiClient.updateMe({ display_name: trimmed });
-      updateUser({ display_name: updated.display_name });
+      const updated = await apiClient.updateMe({ display_name: trimmed, date_of_birth: dateOfBirth || null });
+      updateUser({ display_name: updated.display_name, date_of_birth: updated.date_of_birth, age: updated.age });
       showToast('Profile updated.');
     } catch (err) {
       showToast(err instanceof ApiError ? err.message : 'Failed to update profile.', true);
@@ -86,6 +87,20 @@ export default function Settings() {
                   maxLength={100}
                 />
               </div>
+              <div className="form-group">
+                <label htmlFor="settings-dob">
+                  Date of Birth
+                  {user?.age != null && (
+                    <span style={{ fontWeight: 400, color: 'var(--text-muted)' }}> (Age {user.age})</span>
+                  )}
+                </label>
+                <input
+                  type="date"
+                  id="settings-dob"
+                  value={dateOfBirth}
+                  onChange={(e) => setDateOfBirth(e.target.value)}
+                />
+              </div>
               <button type="submit" className="btn btn-primary" disabled={savingName}>
                 <i className="fa-solid fa-floppy-disk" /> {savingName ? 'Saving...' : 'Save Profile'}
               </button>
@@ -108,48 +123,57 @@ export default function Settings() {
             <div className="card-header border-bottom" style={{ padding: '0 0 1rem 0', marginBottom: '1.25rem' }}>
               <h2><i className="fa-solid fa-lock" style={{ marginRight: 8 }} />Account Security</h2>
             </div>
-            <form onSubmit={handleChangePassword}>
-              <div className="form-group">
-                <label htmlFor="settings-current-password">Current Password</label>
-                <input
-                  type="password"
-                  id="settings-current-password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  autoComplete="current-password"
-                />
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="settings-new-password">New Password</label>
-                  <input
-                    type="password"
-                    id="settings-new-password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    autoComplete="new-password"
-                    minLength={8}
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="settings-confirm-password">Confirm New Password</label>
-                  <input
-                    type="password"
-                    id="settings-confirm-password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    autoComplete="new-password"
-                    minLength={8}
-                  />
-                </div>
-              </div>
-              <button type="submit" className="btn btn-primary" disabled={savingPassword}>
-                <i className="fa-solid fa-key" /> {savingPassword ? 'Updating...' : 'Change Password'}
-              </button>
-            </form>
-            <p className="text-muted" style={{ marginTop: '1rem', fontSize: '0.8rem' }}>
-              There's no self-service password reset yet -- if you forget your password, an admin will need to reset it directly.
-            </p>
+            {user?.has_password === false ? (
+              <p className="text-muted" style={{ fontSize: '0.9rem' }}>
+                <i className="fa-brands fa-google" style={{ marginRight: 8, color: 'var(--primary)' }} />
+                Signed in with Google -- there's no separate password for this account.
+              </p>
+            ) : (
+              <>
+                <form onSubmit={handleChangePassword}>
+                  <div className="form-group">
+                    <label htmlFor="settings-current-password">Current Password</label>
+                    <input
+                      type="password"
+                      id="settings-current-password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      autoComplete="current-password"
+                    />
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="settings-new-password">New Password</label>
+                      <input
+                        type="password"
+                        id="settings-new-password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        autoComplete="new-password"
+                        minLength={8}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="settings-confirm-password">Confirm New Password</label>
+                      <input
+                        type="password"
+                        id="settings-confirm-password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        autoComplete="new-password"
+                        minLength={8}
+                      />
+                    </div>
+                  </div>
+                  <button type="submit" className="btn btn-primary" disabled={savingPassword}>
+                    <i className="fa-solid fa-key" /> {savingPassword ? 'Updating...' : 'Change Password'}
+                  </button>
+                </form>
+                <p className="text-muted" style={{ marginTop: '1rem', fontSize: '0.8rem' }}>
+                  There's no self-service password reset yet -- if you forget your password, an admin will need to reset it directly.
+                </p>
+              </>
+            )}
           </div>
         </div>
       </div>

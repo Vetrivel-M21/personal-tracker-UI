@@ -15,7 +15,7 @@ export default function Sidebar({ tabs, activeTab, onTabChange, user, onLogout }
       <header className="mobile-nav-header">
         <div className="mobile-brand" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div className="logo-icon">
-            <i className="fa-solid fa-wand-magic-sparkles" />
+            <img src="/shadow_leveler_logo.png" alt="Aura logo" />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <span style={{ fontWeight: 600, fontSize: '1.1rem', color: 'var(--text-primary)', lineHeight: 1.2 }}>Aura</span>
@@ -32,7 +32,7 @@ export default function Sidebar({ tabs, activeTab, onTabChange, user, onLogout }
       <aside className="sidebar">
         <div className="brand">
           <div className="logo-icon">
-            <i className="fa-solid fa-wand-magic-sparkles" />
+            <img src="/shadow_leveler_logo.png" alt="Aura logo" />
           </div>
           <h2>Aura</h2>
         </div>
