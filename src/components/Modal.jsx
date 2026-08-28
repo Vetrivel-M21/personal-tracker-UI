@@ -22,7 +22,9 @@ export default function Modal({ open, onClose, title, children, maxWidth = 480 }
       <div className="auth-card glass-card" style={{ maxWidth, position: 'relative' }}>
         {title && (
           <div className="card-header border-bottom" style={{ padding: '0 0 1rem 0', marginBottom: '1.25rem' }}>
-            <h2>{title}</h2>
+            <h2 style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', paddingRight: '2.5rem' }}>
+              {title}
+            </h2>
             <button
               type="button"
               className="btn-icon"

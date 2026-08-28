@@ -227,7 +227,7 @@ body {
     justify-content: space-between;
     position: fixed;
     height: 100vh;
-    overflow-y: auto;
+    overflow: hidden;
     z-index: 100;
 }
 
@@ -274,6 +274,8 @@ body {
     flex-direction: column;
     gap: 4px;
     flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .nav-item {
@@ -1489,9 +1491,23 @@ body.light-theme .bottom-nav .nav-item.active i {
         padding: 1.25rem 1rem 110px 1rem !important;
         gap: 1.25rem;
     }
+
+    /* Clear the bottom-nav bar (16px-80px from the bottom) instead of
+       overlapping it. */
+    .toast {
+        bottom: 96px;
+    }
 }
 
 @media (max-width: 768px) {
+
+    .system-announcement-card {
+        padding: 1.75rem 1.5rem;
+    }
+
+    .system-announcement-level {
+        font-size: 3.5rem;
+    }
 
     /* Responsive Header Area on Mobile */
     .header {
@@ -2202,6 +2218,9 @@ form.integrated-input-group input[type="text"]::placeholder {
 
 .community-row-main h3 {
     margin: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
@@ -3037,6 +3056,8 @@ body.emerald-theme {
 .system-announcement-card {
     position: relative;
     text-align: center;
+    max-width: min(420px, calc(100vw - 32px));
+    box-sizing: border-box;
     padding: 2.5rem 3.5rem;
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-color-hover);

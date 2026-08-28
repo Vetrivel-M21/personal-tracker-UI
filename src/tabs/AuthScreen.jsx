@@ -126,8 +126,11 @@ export default function AuthScreen() {
     function renderButton() {
       if (cancelled || !window.google || !googleButtonRef.current) return;
       window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredential });
+      // Size to the actual card width instead of a fixed 320px so the
+      // button never overflows a narrow phone screen's card.
+      const width = Math.min(320, Math.max(200, googleButtonRef.current.clientWidth || 320));
       window.google.accounts.id.renderButton(googleButtonRef.current, {
-        theme: 'filled_black', size: 'large', width: 320, shape: 'pill',
+        theme: 'filled_black', size: 'large', width, shape: 'pill',
       });
     }
 
