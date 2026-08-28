@@ -13,7 +13,22 @@ export class ApiError extends Error {
 
 const BASE_URL = '';
 
-async function request(method, path, body) {
+// Access tokens are short-lived (15 min); the refresh token cookie lasts 30
+// days. A single in-flight refresh is shared across concurrent 401s so a
+// burst of requests doesn't fire the refresh endpoint multiple times.
+let refreshInFlight = null;
+
+function attemptRefresh() {
+  if (!refreshInFlight) {
+    refreshInFlight = fetch(`${BASE_URL}/api/auth/refresh`, { method: 'POST', credentials: 'include' })
+      .then((res) => res.ok)
+      .catch(() => false)
+      .finally(() => { refreshInFlight = null; });
+  }
+  return refreshInFlight;
+}
+
+async function request(method, path, body, isRetry = false) {
   let res;
   try {
     res = await fetch(`${BASE_URL}${path}`, {
@@ -26,7 +41,16 @@ async function request(method, path, body) {
     throw new ApiError(0, 'NETWORK_ERROR', 'Could not reach the server. Check your connection.');
   }
 
-  if (res.status === 401) {
+  // A 401 on an authenticated endpoint usually just means the access token
+  // expired -- try a silent refresh and transparently retry once before
+  // treating it as a real session expiry. Skip this for /api/auth/* itself:
+  // those 401s are real login/signup failures, not session expiry, and
+  // /api/auth/refresh must never try to refresh itself.
+  if (res.status === 401 && !isRetry && !path.startsWith('/api/auth/')) {
+    const refreshed = await attemptRefresh();
+    if (refreshed) {
+      return request(method, path, body, true);
+    }
     window.dispatchEvent(new CustomEvent('auth-expired'));
   }
 

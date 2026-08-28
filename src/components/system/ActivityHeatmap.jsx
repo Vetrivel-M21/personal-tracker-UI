@@ -31,14 +31,36 @@ export default function ActivityHeatmap({ entries, habitCount, days = 182 }) {
     const ratio = habitCount > 0 ? completed / habitCount : 0;
     cells.push({
       key,
+      date: d,
       level: levelForRatio(ratio),
       title: `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${completed}/${habitCount} habits`,
     });
   }
 
+  // Month labels: chunk the same leading-blanks-then-cells sequence into
+  // columns of 7 (one per week, matching the grid below) and label each
+  // column with its first dated cell's month, only when that month differs
+  // from the previous column's.
+  const allCells = [...Array.from({ length: leadingBlanks }, () => null), ...cells];
+  const monthLabels = [];
+  let lastMonth = null;
+  for (let i = 0; i < allCells.length; i += 7) {
+    const column = allCells.slice(i, i + 7);
+    const firstDated = column.find((c) => c);
+    if (!firstDated) { monthLabels.push(''); continue; }
+    const month = firstDated.date.getMonth();
+    monthLabels.push(month === lastMonth ? '' : firstDated.date.toLocaleDateString('en-US', { month: 'short' }));
+    lastMonth = month;
+  }
+
   return (
     <div className="card glass-card habit-grid-card">
       <div className="habit-heatmap-wrapper">
+        <div className="heatmap-months">
+          {monthLabels.map((label, i) => (
+            <span key={i} className="heatmap-month-label">{label}</span>
+          ))}
+        </div>
         <div className="habit-heatmap">
           {Array.from({ length: leadingBlanks }).map((_, i) => (
             <div key={`blank-${i}`} className="heatmap-day" style={{ visibility: 'hidden' }} />

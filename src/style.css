@@ -221,12 +221,13 @@ body {
     width: 260px;
     background-color: var(--bg-sidebar);
     border-right: 1px solid var(--border-color);
-    padding: 2rem 1.5rem;
+    padding: 1.25rem 1.4rem;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     position: fixed;
     height: 100vh;
+    overflow-y: auto;
     z-index: 100;
 }
 
@@ -234,7 +235,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .logo-icon {
@@ -271,7 +272,7 @@ body {
 .nav-menu {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     flex-grow: 1;
 }
 
@@ -279,7 +280,7 @@ body {
     display: flex;
     align-items: center;
     gap: 14px;
-    padding: 12px 16px;
+    padding: 9px 16px;
     color: var(--text-secondary);
     text-decoration: none;
     font-size: 0.95rem;
@@ -313,9 +314,9 @@ body {
 .sidebar-footer {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 8px;
     border-top: 1px solid var(--border-color);
-    padding-top: 1.5rem;
+    padding-top: 1rem;
 }
 
 .user-profile-badge {
@@ -949,6 +950,20 @@ select:focus {
     box-sizing: border-box;
 }
 
+.heatmap-months {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 12px;
+    gap: 4px;
+    margin-bottom: 4px;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.heatmap-month-label {
+    white-space: nowrap;
+}
+
 .habit-heatmap {
     display: grid;
     grid-auto-flow: column;
@@ -1010,6 +1025,7 @@ select:focus {
     align-items: center;
     justify-content: center;
     padding: 1.5rem;
+    overflow-y: auto;
 }
 
 .auth-card {
@@ -1634,6 +1650,7 @@ body.light-theme .bottom-nav .nav-item.active i {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow-y: auto;
     z-index: var(--z-modal);
     animation: modal-overlay-fade-in 0.2s ease-out;
 }

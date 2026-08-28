@@ -20,6 +20,40 @@ export default function Settings() {
     if (next) playQuestComplete();
   }
 
+  const [publicProfile, setPublicProfile] = useState(!user?.profile_private);
+  const [showHabits, setShowHabits] = useState(!user?.hide_habits);
+  const [savingPrivacy, setSavingPrivacy] = useState(false);
+
+  async function handleTogglePublicProfile() {
+    const next = !publicProfile;
+    setPublicProfile(next);
+    setSavingPrivacy(true);
+    try {
+      const updated = await apiClient.updateMe({ display_name: user?.display_name || '', profile_private: !next });
+      updateUser({ profile_private: updated.profile_private, hide_habits: updated.hide_habits });
+    } catch (err) {
+      setPublicProfile(!next);
+      showToast(err instanceof ApiError ? err.message : 'Failed to update privacy setting.', true);
+    } finally {
+      setSavingPrivacy(false);
+    }
+  }
+
+  async function handleToggleShowHabits() {
+    const next = !showHabits;
+    setShowHabits(next);
+    setSavingPrivacy(true);
+    try {
+      const updated = await apiClient.updateMe({ display_name: user?.display_name || '', hide_habits: !next });
+      updateUser({ profile_private: updated.profile_private, hide_habits: updated.hide_habits });
+    } catch (err) {
+      setShowHabits(!next);
+      showToast(err instanceof ApiError ? err.message : 'Failed to update privacy setting.', true);
+    } finally {
+      setSavingPrivacy(false);
+    }
+  }
+
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -115,6 +149,25 @@ export default function Settings() {
             <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.75rem' }}>
               Plays short synthesized tones for quest completions, level-ups, and system messages.
             </p>
+          </div>
+
+          <div className="card glass-card" style={{ padding: '1.5rem' }}>
+            <div className="card-header border-bottom" style={{ padding: '0 0 1rem 0', marginBottom: '1.25rem' }}>
+              <h2><i className="fa-solid fa-user-shield" style={{ marginRight: 8 }} />Privacy</h2>
+            </div>
+            <ToggleSwitch checked={publicProfile} onChange={handleTogglePublicProfile} label="Public Profile" />
+            <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
+              When off, your profile is hidden from Community and Leaderboard for everyone but you.
+            </p>
+            <ToggleSwitch
+              checked={showHabits}
+              onChange={handleToggleShowHabits}
+              label="Show My Habits"
+            />
+            <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.75rem' }}>
+              When off, other hunters can still see your stats but not your individual habit list.
+            </p>
+            {savingPrivacy && <p className="text-muted" style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>Saving...</p>}
           </div>
         </div>
 

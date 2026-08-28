@@ -148,8 +148,9 @@ export default function Community() {
               </p>
             )}
             <div className="habit-manager-list" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {(summary.habits || []).length === 0 && <p className="text-muted">No habits yet.</p>}
-              {(summary.habits || []).map((h) => (
+              {summary.habits_hidden && <p className="text-muted">This hunter's habits are private.</p>}
+              {!summary.habits_hidden && (summary.habits || []).length === 0 && <p className="text-muted">No habits yet.</p>}
+              {!summary.habits_hidden && (summary.habits || []).map((h) => (
                 <div key={h.id} className="habit-manager-item">
                   <div className="habit-manager-item-left">
                     <i className={h.icon} style={{ color: h.color }} />
