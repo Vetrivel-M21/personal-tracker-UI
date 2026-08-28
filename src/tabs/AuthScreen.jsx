@@ -4,7 +4,7 @@ import { ApiError } from '../api/apiClient.js';
 import { showToast } from '../components/Toast.jsx';
 
 const USERNAME_HINT = '3-32 characters: letters, numbers, underscore';
-const GOOGLE_CLIENT_ID = import.meta.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const GOOGLE_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 const RESEND_COOLDOWN_SECONDS = 60;
 
