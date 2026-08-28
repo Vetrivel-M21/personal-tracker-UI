@@ -7,7 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8080',
+        target: 'https://personal-tracker-api-gtoh.onrender.com',
         changeOrigin: true,
       },
     },
