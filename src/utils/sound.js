@@ -67,6 +67,18 @@ export function playLevelUp() {
   });
 }
 
+// Repeated harsh beeps - a Focus/Meditation timer finishing needs to cut
+// through even with eyes closed, so this is deliberately louder/longer and
+// a different timbre (square wave) than every other "soft chime" sound here.
+export function playTimerAlarm() {
+  play((ctx) => {
+    const t = ctx.currentTime;
+    for (let i = 0; i < 4; i++) {
+      tone(ctx, 880, t + i * 0.3, 0.18, { type: 'square', gain: 0.16 });
+    }
+  });
+}
+
 // Single soft tone for a system message appearing - one pitch for success,
 // a lower/rougher one for an error.
 export function playSystemMessage(isError = false) {

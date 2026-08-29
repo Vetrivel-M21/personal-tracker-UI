@@ -3,6 +3,7 @@ import { apiClient, ApiError } from '../api/apiClient.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { showToast } from '../components/Toast.jsx';
 import { isSoundEnabled, setSoundEnabled, playQuestComplete } from '../utils/sound.js';
+import { THEMES, getTheme, setTheme } from '../utils/theme.js';
 import ToggleSwitch from '../components/system/ToggleSwitch.jsx';
 import HabitManager from '../components/HabitManager.jsx';
 import Modal from '../components/Modal.jsx';
@@ -19,6 +20,13 @@ export default function Settings() {
     setSoundEnabled(next);
     setSoundOn(next);
     if (next) playQuestComplete();
+  }
+
+  const [activeTheme, setActiveTheme] = useState(getTheme());
+
+  function handleSelectTheme(id) {
+    setTheme(id);
+    setActiveTheme(id);
   }
 
   const [publicProfile, setPublicProfile] = useState(!user?.profile_private);
@@ -192,9 +200,30 @@ export default function Settings() {
               <h2><i className="fa-solid fa-sliders" style={{ marginRight: 8 }} />System Preferences</h2>
             </div>
             <ToggleSwitch checked={soundOn} onChange={handleToggleSound} label="System Sound Effects" />
-            <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.75rem' }}>
+            <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.75rem', marginBottom: '1.25rem' }}>
               Plays short synthesized tones for quest completions, level-ups, and system messages.
             </p>
+            <p style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '0.75rem' }}>Theme</p>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', gap: 10 }}>
+              {THEMES.map((t) => (
+                <div key={t.id} className="theme-shop-card">
+                  <div className="theme-preview-swatch" style={{ background: t.swatch[0] }}>
+                    {t.swatch.slice(1).map((color, i) => (
+                      <span key={i} style={{ width: 14, height: 14, borderRadius: '50%', background: color }} />
+                    ))}
+                  </div>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{t.name}</span>
+                  <button
+                    type="button"
+                    className={`btn btn-sm ${activeTheme === t.id ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={() => handleSelectTheme(t.id)}
+                  >
+                    {activeTheme === t.id ? <><i className="fa-solid fa-check" /> Active</> : 'Select'}
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="card glass-card" style={{ padding: '1.5rem' }}>

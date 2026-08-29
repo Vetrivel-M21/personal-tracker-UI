@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { apiClient, ApiError } from '../api/apiClient.js';
 import { showToast } from './Toast.jsx';
-import { playQuestComplete } from '../utils/sound.js';
+import { playTimerAlarm } from '../utils/sound.js';
 
 const DURATIONS = [5, 10, 15, 20, 30];
 const SESSION_TYPES = [
@@ -74,7 +74,7 @@ export default function FocusTimer() {
   }
 
   function completeSession(durationMinutes) {
-    playQuestComplete();
+    playTimerAlarm();
     showToast(`${sessionType} session complete! 🎉`);
     logSession(durationMinutes);
     startedAtRef.current = null;
