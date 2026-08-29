@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { apiClient, ApiError } from '../api/apiClient.js';
 import { showToast } from '../components/Toast.jsx';
 import SplitBuilderModal from '../components/SplitBuilderModal.jsx';
+import CalisthenicsSkillTree from '../components/CalisthenicsSkillTree.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
 
 function todayStr() {
@@ -248,6 +249,9 @@ export default function Fitness() {
             <button type="button" className={`btn btn-sm ${view === 'templates' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setView('templates')}>
               Browse Templates
             </button>
+            <button type="button" className={`btn btn-sm ${view === 'skills' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setView('skills')}>
+              Skill Tree
+            </button>
           </div>
         </div>
 
@@ -331,6 +335,8 @@ export default function Fitness() {
               </div>
             </>
           )}
+
+          {view === 'skills' && <CalisthenicsSkillTree />}
         </div>
       </div>
 

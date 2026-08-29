@@ -70,6 +70,14 @@ export function AuthProvider({ children }) {
     return apiClient.resendVerification(username);
   }, []);
 
+  const forgotPassword = useCallback(async (username) => {
+    return apiClient.forgotPassword(username);
+  }, []);
+
+  const resetPassword = useCallback(async (username, code, newPassword) => {
+    return apiClient.resetPassword(username, code, newPassword);
+  }, []);
+
   const loginWithGoogle = useCallback(async (credential) => {
     const me = await apiClient.loginWithGoogle(credential);
     const withStatsUser = await withStats(me);
@@ -89,9 +97,18 @@ export function AuthProvider({ children }) {
     setUser((prev) => (prev ? { ...prev, ...patch } : prev));
   }, []);
 
+  const deleteAccount = useCallback(async (password) => {
+    try {
+      await apiClient.deleteAccount(password);
+    } finally {
+      setUser(null);
+    }
+  }, []);
+
   return (
     <AuthContext.Provider value={{
-      user, loading, login, signUp, verifyEmail, resendVerification, loginWithGoogle, logout, updateUser,
+      user, loading, login, signUp, verifyEmail, resendVerification, forgotPassword, resetPassword,
+      loginWithGoogle, logout, updateUser, deleteAccount,
     }}>
       {children}
     </AuthContext.Provider>

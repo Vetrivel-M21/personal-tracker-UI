@@ -60,6 +60,18 @@ export default function Community() {
     }
   }
 
+  async function handleGiveKudos(userId) {
+    try {
+      const result = await apiClient.giveKudos(userId);
+      setEntries((prev) => prev.map((row) => (
+        row.user_id === userId ? { ...row, kudos_count: result.kudos_count } : row
+      )));
+      showToast('Kudos sent! 🎉');
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Failed to send kudos.', true);
+    }
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
@@ -106,14 +118,29 @@ export default function Community() {
                     <i className="fa-solid fa-dumbbell" style={{ marginRight: 6 }} />{row.active_split_name}
                   </span>
                 )}
+                <span className="text-muted" style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
+                  <i className="fa-solid fa-champagne-glasses" /> {row.kudos_count ?? 0} kudos
+                </span>
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => openHabits(row.user_id)}
-              >
-                View Habits
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {row.user_id !== user?.id && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleGiveKudos(row.user_id)}
+                    title="Send Kudos"
+                  >
+                    <i className="fa-solid fa-champagne-glasses" /> Kudos
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => openHabits(row.user_id)}
+                >
+                  View Habits
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -140,6 +167,9 @@ export default function Community() {
               <RankBadge xp={summary.xp} />
               <span className="text-orange" style={{ fontSize: '0.85rem' }}>
                 <i className="fa-solid fa-fire" /> {summary.current_streak} day{summary.current_streak === 1 ? '' : 's'}
+              </span>
+              <span className="text-muted" style={{ fontSize: '0.85rem' }}>
+                <i className="fa-solid fa-champagne-glasses" /> {summary.kudos_count ?? 0} kudos
               </span>
             </div>
             {summary.active_split_name && (

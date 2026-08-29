@@ -3,19 +3,13 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useHabits } from '../hooks/useHabits.js';
 import { useProgress } from '../hooks/useProgress.js';
 import { showToast } from '../components/Toast.jsx';
-import ComingSoonCard from '../components/ComingSoonCard.jsx';
+import FocusTimer from '../components/FocusTimer.jsx';
 import SystemAnnouncement from '../components/SystemAnnouncement.jsx';
 import StatCard from '../components/system/StatCard.jsx';
 import QuestCard from '../components/system/QuestCard.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
 import { ApiError } from '../api/apiClient.js';
-
-const MOODS = [
-  { value: 'Great', label: 'Great 😄' },
-  { value: 'Good', label: 'Good 🙂' },
-  { value: 'Average', label: 'Average 😐' },
-  { value: 'Bad', label: 'Bad 😔' },
-];
+import { MOODS } from '../utils/moods.js';
 
 function todayStr() {
   const d = new Date();
@@ -263,7 +257,7 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
               <div className="form-group">
                 <label htmlFor="log-mood">Mood</label>
                 <select id="log-mood" value={mood} onChange={(e) => setMood(e.target.value)}>
-                  {MOODS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+                  {MOODS.map((m) => <option key={m.value} value={m.value}>{m.label} {m.emoji}</option>)}
                 </select>
               </div>
             </div>
@@ -285,7 +279,7 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
           </form>
         </div>
 
-        <ComingSoonCard title="Focus & Meditation Hub" icon="fa-stopwatch" />
+        <FocusTimer />
       </div>
     </>
   );

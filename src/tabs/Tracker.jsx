@@ -3,10 +3,11 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useHabits } from '../hooks/useHabits.js';
 import { useProgress } from '../hooks/useProgress.js';
 import { showToast } from '../components/Toast.jsx';
-import ComingSoonCard from '../components/ComingSoonCard.jsx';
 import Pagination from '../components/Pagination.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
+import AttributeBar from '../components/system/AttributeBar.jsx';
 import { ApiError } from '../api/apiClient.js';
+import { MOODS } from '../utils/moods.js';
 
 const PAGE_SIZE = 8;
 const HISTORY_WINDOW_DAYS = 365;
@@ -57,6 +58,26 @@ export default function Tracker({ onEditDate }) {
     () => [...progress.rangeEntries].sort((a, b) => (a.date < b.date ? 1 : -1)),
     [progress.rangeEntries],
   );
+
+  const moodStats = useMemo(() => {
+    if (sortedEntries.length === 0) return [];
+    const counts = Object.fromEntries(MOODS.map((m) => [m.value, 0]));
+    sortedEntries.forEach((entry) => {
+      const mood = counts[entry.mood] !== undefined ? entry.mood : 'Average';
+      counts[mood] += 1;
+    });
+    return MOODS.map((m) => ({
+      ...m,
+      count: counts[m.value],
+      pct: Math.round((counts[m.value] / sortedEntries.length) * 100),
+    }));
+  }, [sortedEntries]);
+
+  const latestReflection = useMemo(
+    () => sortedEntries.find((entry) => entry.notes && entry.notes.trim() !== ''),
+    [sortedEntries],
+  );
+
   const totalPages = Math.max(1, Math.ceil(sortedEntries.length / PAGE_SIZE));
   const pageEntries = sortedEntries.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -132,7 +153,41 @@ export default function Tracker({ onEditDate }) {
       </div>
 
       <div className="pane-right">
-        <ComingSoonCard title="Mood & Gratitude" icon="fa-heart" />
+        <div className="card glass-card" style={{ padding: '1.5rem' }}>
+          <div className="card-header border-bottom" style={{ padding: '0 0 1rem 0', marginBottom: '1.25rem' }}>
+            <h2><i className="fa-solid fa-heart" style={{ color: 'var(--primary)', marginRight: 8 }} />Mood & Gratitude</h2>
+            <span className="text-muted" style={{ fontSize: '0.8rem' }}>Trailing {HISTORY_WINDOW_DAYS} days</span>
+          </div>
+          {moodStats.length === 0 ? (
+            <EmptyState
+              icon="fa-heart"
+              title="No Mood Data Yet"
+              message="Log today's mood and a reflection from the Dashboard to start seeing your trends here."
+            />
+          ) : (
+            <>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {moodStats.map((m) => (
+                  <AttributeBar
+                    key={m.value}
+                    code={m.emoji}
+                    label={`${m.label} (${m.count})`}
+                    icon={m.icon}
+                    value={m.pct}
+                    color={m.color}
+                    glow={m.glow}
+                  />
+                ))}
+              </div>
+              {latestReflection && (
+                <div className="ledger-reflection" style={{ marginTop: '1.25rem' }}>
+                  <i className="fa-solid fa-quote-left" style={{ opacity: 0.3, marginRight: 8 }} />
+                  {latestReflection.notes}
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         <div className="card glass-card" style={{ padding: 0 }}>
           <div className="card-header border-bottom">

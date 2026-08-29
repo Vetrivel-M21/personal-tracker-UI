@@ -5,9 +5,10 @@ import { showToast } from '../components/Toast.jsx';
 import { isSoundEnabled, setSoundEnabled, playQuestComplete } from '../utils/sound.js';
 import ToggleSwitch from '../components/system/ToggleSwitch.jsx';
 import HabitManager from '../components/HabitManager.jsx';
+import Modal from '../components/Modal.jsx';
 
 export default function Settings() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, deleteAccount } = useAuth();
   const [displayName, setDisplayName] = useState(user?.display_name || '');
   const [dateOfBirth, setDateOfBirth] = useState(user?.date_of_birth || '');
   const [savingName, setSavingName] = useState(false);
@@ -23,6 +24,27 @@ export default function Settings() {
   const [publicProfile, setPublicProfile] = useState(!user?.profile_private);
   const [showHabits, setShowHabits] = useState(!user?.hide_habits);
   const [savingPrivacy, setSavingPrivacy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  async function handleExportData() {
+    setExporting(true);
+    try {
+      const data = await apiClient.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `aura-export-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Failed to export data.', true);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   async function handleTogglePublicProfile() {
     const next = !publicProfile;
@@ -58,6 +80,11 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [savingPassword, setSavingPassword] = useState(false);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   async function handleSaveProfile(e) {
     e.preventDefault();
@@ -99,6 +126,25 @@ export default function Settings() {
       showToast(err instanceof ApiError ? err.message : 'Failed to change password.', true);
     } finally {
       setSavingPassword(false);
+    }
+  }
+
+  async function handleDeleteAccount(e) {
+    e.preventDefault();
+    if (user?.has_password && !deletePassword) {
+      showToast('Enter your password to confirm.', true);
+      return;
+    }
+    if (!user?.has_password && deleteConfirmText.trim().toUpperCase() !== 'DELETE') {
+      showToast('Type DELETE to confirm.', true);
+      return;
+    }
+    setDeleting(true);
+    try {
+      await deleteAccount(deletePassword);
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Failed to delete account.', true);
+      setDeleting(false);
     }
   }
 
@@ -168,6 +214,15 @@ export default function Settings() {
               When off, other hunters can still see your stats but not your individual habit list.
             </p>
             {savingPrivacy && <p className="text-muted" style={{ fontSize: '0.75rem', marginTop: '0.5rem' }}>Saving...</p>}
+
+            <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '1.25rem', paddingTop: '1.25rem' }}>
+              <button type="button" className="btn btn-secondary" disabled={exporting} onClick={handleExportData}>
+                <i className="fa-solid fa-download" /> {exporting ? 'Preparing export...' : 'Export My Data'}
+              </button>
+              <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '0.5rem' }}>
+                Download everything stored about your account -- habits, daily logs, workouts -- as a JSON file.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -222,11 +277,25 @@ export default function Settings() {
                     <i className="fa-solid fa-key" /> {savingPassword ? 'Updating...' : 'Change Password'}
                   </button>
                 </form>
-                <p className="text-muted" style={{ marginTop: '1rem', fontSize: '0.8rem' }}>
-                  There's no self-service password reset yet -- if you forget your password, an admin will need to reset it directly.
-                </p>
               </>
             )}
+          </div>
+
+          <div className="card glass-card" style={{ padding: '1.5rem', border: '1px solid var(--danger)' }}>
+            <div className="card-header border-bottom" style={{ padding: '0 0 1rem 0', marginBottom: '1.25rem' }}>
+              <h2 style={{ color: 'var(--danger)' }}><i className="fa-solid fa-triangle-exclamation" style={{ marginRight: 8 }} />Danger Zone</h2>
+            </div>
+            <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '1rem' }}>
+              Permanently deletes your account and all of your data -- habits, progress history, and workouts. This cannot be undone.
+            </p>
+            <button
+              type="button"
+              className="btn"
+              style={{ background: 'var(--danger)', color: 'white' }}
+              onClick={() => setDeleteModalOpen(true)}
+            >
+              <i className="fa-solid fa-trash" /> Delete Account
+            </button>
           </div>
         </div>
       </div>
@@ -234,6 +303,44 @@ export default function Settings() {
       <div style={{ marginTop: '1rem' }}>
         <HabitManager />
       </div>
+
+      <Modal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="Delete Account">
+        <p className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+          This permanently deletes your account, habits, progress history, and workouts. This cannot be undone.
+        </p>
+        <form onSubmit={handleDeleteAccount}>
+          {user?.has_password ? (
+            <div className="form-group">
+              <label htmlFor="delete-password">Enter your password to confirm</label>
+              <input
+                type="password"
+                id="delete-password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+          ) : (
+            <div className="form-group">
+              <label htmlFor="delete-confirm-text">Type DELETE to confirm</label>
+              <input
+                type="text"
+                id="delete-confirm-text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+              />
+            </div>
+          )}
+          <button
+            type="submit"
+            className="btn"
+            style={{ background: 'var(--danger)', color: 'white', width: '100%', justifyContent: 'center' }}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting...' : 'Permanently Delete My Account'}
+          </button>
+        </form>
+      </Modal>
     </>
   );
 }

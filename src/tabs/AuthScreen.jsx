@@ -17,15 +17,18 @@ const MAX_DOB = isoDateNYearsAgo(13);
 const MIN_DOB = isoDateNYearsAgo(120);
 
 export default function AuthScreen() {
-  const { login, signUp, verifyEmail, resendVerification, loginWithGoogle } = useAuth();
-  const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'verify'
+  const { login, signUp, verifyEmail, resendVerification, forgotPassword, resetPassword, loginWithGoogle } = useAuth();
+  const [mode, setMode] = useState('login'); // 'login' | 'signup' | 'verify' | 'forgot'
   const [signupStep, setSignupStep] = useState(1); // 1: username/password, 2: display name/email
+  const [forgotStep, setForgotStep] = useState(1); // 1: username, 2: code + new password
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [code, setCode] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [emailHint, setEmailHint] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
@@ -53,8 +56,19 @@ export default function AuthScreen() {
         setResendSecondsLeft(RESEND_COOLDOWN_SECONDS);
         setSignupStep(1);
         setMode('verify');
-      } else {
+      } else if (mode === 'verify') {
         await verifyEmail(username, code.trim());
+      } else if (mode === 'forgot') {
+        if (newPassword !== confirmPassword) {
+          showToast('Passwords do not match.', true);
+          return;
+        }
+        await resetPassword(username.trim(), code.trim(), newPassword);
+        setCode('');
+        setNewPassword('');
+        setConfirmPassword('');
+        switchMode('login');
+        showToast('Password reset. Please sign in with your new password.');
       }
     } catch (err) {
       if (mode === 'login' && err instanceof ApiError && err.code === 'EMAIL_NOT_VERIFIED') {
@@ -80,7 +94,43 @@ export default function AuthScreen() {
 
   function switchMode(nextMode) {
     setSignupStep(1);
+    setForgotStep(1);
     setMode(nextMode);
+  }
+
+  async function handleForgotRequestCode() {
+    const trimmedUsername = username.trim();
+    if (trimmedUsername.length < 3) {
+      showToast('Enter your username.', true);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await forgotPassword(trimmedUsername);
+      setUsername(trimmedUsername);
+      setCode('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setResendSecondsLeft(RESEND_COOLDOWN_SECONDS);
+      setForgotStep(2);
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Something went wrong. Please try again.';
+      showToast(message, true);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleForgotResend() {
+    if (resendSecondsLeft > 0) return;
+    try {
+      await forgotPassword(username);
+      setResendSecondsLeft(RESEND_COOLDOWN_SECONDS);
+      showToast('A new code is on its way.');
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : 'Failed to resend code.';
+      showToast(message, true);
+    }
   }
 
   function handleNextStep() {
@@ -226,6 +276,108 @@ export default function AuthScreen() {
                 </button>
               </p>
             </form>
+          ) : mode === 'forgot' ? (
+            <form className="auth-form active" onSubmit={handleSubmit}>
+              {forgotStep === 1 ? (
+                <>
+                  <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+                    <i className="fa-solid fa-key" style={{ fontSize: '2rem', color: 'var(--primary)', marginBottom: 10 }} />
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                      Enter your username and we'll email a reset code if the account has one.
+                    </p>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="forgot-username">Username</label>
+                    <input
+                      type="text"
+                      id="forgot-username"
+                      required
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary auth-submit-btn"
+                    disabled={submitting}
+                    onClick={handleForgotRequestCode}
+                  >
+                    {submitting ? 'Sending...' : 'Send Reset Code'}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+                    <i className="fa-solid fa-envelope-circle-check" style={{ fontSize: '2rem', color: 'var(--primary)', marginBottom: 10 }} />
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                      If that account exists, a 6-digit code was sent to its email.
+                    </p>
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="forgot-code">Reset Code</label>
+                    <input
+                      type="text"
+                      id="forgot-code"
+                      required
+                      inputMode="numeric"
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                      placeholder="123456"
+                      style={{ textAlign: 'center', letterSpacing: '4px', fontSize: '1.1rem' }}
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="forgot-new-password">New Password</label>
+                    <input
+                      type="password"
+                      id="forgot-new-password"
+                      required
+                      minLength={8}
+                      maxLength={200}
+                      placeholder="••••••••"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label htmlFor="forgot-confirm-password">Confirm New Password</label>
+                    <input
+                      type="password"
+                      id="forgot-confirm-password"
+                      required
+                      minLength={8}
+                      maxLength={200}
+                      placeholder="••••••••"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary auth-submit-btn" disabled={submitting || code.length !== 6}>
+                    {submitting ? 'Resetting...' : 'Reset Password'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary auth-submit-btn"
+                    disabled={resendSecondsLeft > 0}
+                    onClick={handleForgotResend}
+                  >
+                    {resendSecondsLeft > 0 ? `Resend Code (${resendSecondsLeft}s)` : 'Resend Code'}
+                  </button>
+                </>
+              )}
+              <p style={{ textAlign: 'center', marginTop: 12 }}>
+                <button
+                  type="button"
+                  className="btn-icon"
+                  style={{ width: 'auto', height: 'auto', fontSize: '0.8rem', color: 'var(--text-muted)' }}
+                  onClick={() => switchMode('login')}
+                >
+                  Back to Sign In
+                </button>
+              </p>
+            </form>
           ) : (
             <form className="auth-form active" onSubmit={handleSubmit}>
               {mode === 'signup' && (
@@ -274,6 +426,18 @@ export default function AuthScreen() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  {mode === 'login' && (
+                    <p style={{ textAlign: 'right', marginTop: 6 }}>
+                      <button
+                        type="button"
+                        className="btn-icon"
+                        style={{ width: 'auto', height: 'auto', fontSize: '0.78rem', color: 'var(--text-muted)' }}
+                        onClick={() => switchMode('forgot')}
+                      >
+                        Forgot password?
+                      </button>
+                    </p>
+                  )}
                 </div>
               )}
 

@@ -108,6 +108,12 @@ export const apiClient = {
   resendVerification(username) {
     return request('POST', '/api/auth/resend-verification', { username });
   },
+  forgotPassword(username) {
+    return request('POST', '/api/auth/forgot-password', { username });
+  },
+  resetPassword(username, code, newPassword) {
+    return request('POST', '/api/auth/reset-password', { username, code, new_password: newPassword });
+  },
 
   // --- Profile ---
   getMe() {
@@ -122,6 +128,12 @@ export const apiClient = {
   changePassword(currentPassword, newPassword) {
     return request('PATCH', '/api/me/password', { current_password: currentPassword, new_password: newPassword });
   },
+  deleteAccount(password) {
+    return request('DELETE', '/api/me', { password });
+  },
+  exportData() {
+    return request('GET', '/api/me/export');
+  },
 
   // --- Habits ---
   listHabits() {
@@ -132,6 +144,22 @@ export const apiClient = {
   },
   deleteHabit(id) {
     return request('DELETE', `/api/habits/${id}`);
+  },
+
+  // --- Focus / meditation sessions ---
+  logFocusSession(sessionType, durationMinutes) {
+    return request('POST', '/api/focus-sessions', { session_type: sessionType, duration_minutes: durationMinutes });
+  },
+  listFocusSessions(limit, offset) {
+    return request('GET', `/api/focus-sessions${qs({ limit, offset })}`);
+  },
+
+  // --- Calisthenics skill tree ---
+  listCalisthenicsSkills() {
+    return request('GET', '/api/calisthenics/skills');
+  },
+  unlockCalisthenicsSkill(skillId) {
+    return request('POST', `/api/calisthenics/skills/${skillId}/unlock`);
   },
 
   // --- Progress / daily check-in ---
@@ -157,6 +185,9 @@ export const apiClient = {
   },
   getUserHabitsSummary(userId) {
     return request('GET', `/api/users/${userId}/habits-summary`);
+  },
+  giveKudos(userId) {
+    return request('POST', `/api/users/${userId}/kudos`);
   },
 
   // --- Workouts: templates ---
