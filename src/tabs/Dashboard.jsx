@@ -63,7 +63,7 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
         const data = await progress.loadEntry(selectedDate);
         if (cancelled) return;
         if (data) {
-          setCheckedIds(new Set(data.completed_habits || []));
+          setCheckedIds(new Set(data.completed_habit_ids || []));
           setLearningHours(Number(data.learning_hours) || 0);
           setMood(data.mood || 'Average');
           setNotes(data.notes || '');
@@ -108,7 +108,7 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
         d.setDate(d.getDate() - i);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         const row = byDate[key];
-        const completed = row && Array.isArray(row.completed_habits) ? row.completed_habits.length : 0;
+        const completed = row && Array.isArray(row.completed_habit_ids) ? row.completed_habit_ids.length : 0;
         completionSum += totalHabits > 0 ? completed / totalHabits : 0;
       }
       setWeeklyCompletionPct(Math.round((completionSum / 7) * 100));

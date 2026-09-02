@@ -41,7 +41,7 @@ export default function Tracker({ onEditDate }) {
       setMonthLearningHours(monthRows.reduce((sum, r) => sum + (Number(r.learning_hours) || 0), 0));
       if (monthRows.length > 0 && habits.length > 0) {
         const avg = monthRows.reduce((sum, r) => {
-          const completed = Array.isArray(r.completed_habits) ? r.completed_habits.length : 0;
+          const completed = Array.isArray(r.completed_habit_ids) ? r.completed_habit_ids.length : 0;
           return sum + completed / habits.length;
         }, 0) / monthRows.length;
         setMonthCompletionPct(Math.round(avg * 100));
@@ -209,7 +209,7 @@ export default function Tracker({ onEditDate }) {
               const formattedDate = new Date(`${entry.date}T00:00:00`).toLocaleDateString('en-US', {
                 weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
               });
-              const completedSet = new Set(entry.completed_habits || []);
+              const completedSet = new Set(entry.completed_habit_ids || []);
               return (
                 <div key={entry.date} className="ledger-item-card">
                   <div className="ledger-card-header">

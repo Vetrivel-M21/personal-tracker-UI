@@ -27,7 +27,7 @@ export default function ActivityHeatmap({ entries, habitCount, days = 182 }) {
     d.setDate(d.getDate() - i);
     const key = dateKey(d);
     const entry = byDate[key];
-    const completed = entry && Array.isArray(entry.completed_habits) ? entry.completed_habits.length : 0;
+    const completed = entry && Array.isArray(entry.completed_habit_ids) ? entry.completed_habit_ids.length : 0;
     const ratio = habitCount > 0 ? completed / habitCount : 0;
     cells.push({
       key,
