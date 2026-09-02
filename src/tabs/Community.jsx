@@ -7,6 +7,8 @@ import Modal from '../components/Modal.jsx';
 import LevelBadge from '../components/LevelBadge.jsx';
 import RankBadge from '../components/RankBadge.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
+import { SkeletonGroup } from '../components/system/Skeleton.jsx';
+import { flameClassName } from '../utils/flame.js';
 
 const PAGE_SIZE = 20;
 
@@ -92,7 +94,7 @@ export default function Community() {
         </div>
       </div>
 
-      {loading && <p className="text-muted" style={{ marginTop: '1rem' }}>Scanning the hunter registry...</p>}
+      {loading && <div style={{ marginTop: '1rem' }}><SkeletonGroup count={6} height={60} /></div>}
 
       {!loading && entries.length === 0 && (
         <div style={{ marginTop: '1rem' }}>
@@ -111,7 +113,7 @@ export default function Community() {
                 <LevelBadge level={row.level} />
                 <RankBadge xp={row.xp} />
                 <span className="text-orange" style={{ fontSize: '0.85rem', whiteSpace: 'nowrap' }}>
-                  <i className="fa-solid fa-fire" /> {row.current_streak} day{row.current_streak === 1 ? '' : 's'}
+                  <i className={`fa-solid fa-fire ${flameClassName(row.current_streak)}`} /> {row.current_streak} day{row.current_streak === 1 ? '' : 's'}
                 </span>
                 {row.active_split_name && (
                   <span className="stat-desc" style={{ whiteSpace: 'nowrap' }}>
@@ -158,7 +160,7 @@ export default function Community() {
       )}
 
       <Modal open={selectedUserId !== null} onClose={() => setSelectedUserId(null)} title={summary?.display_name || 'Hunter Profile'}>
-        {summaryLoading && <p className="text-muted">Loading hunter profile...</p>}
+        {summaryLoading && <SkeletonGroup count={3} height={48} />}
         {summaryError && <p style={{ color: 'var(--danger)' }}>{summaryError}</p>}
         {summary && !summaryLoading && !summaryError && (
           <>
@@ -166,7 +168,7 @@ export default function Community() {
               <LevelBadge level={summary.level} />
               <RankBadge xp={summary.xp} />
               <span className="text-orange" style={{ fontSize: '0.85rem' }}>
-                <i className="fa-solid fa-fire" /> {summary.current_streak} day{summary.current_streak === 1 ? '' : 's'}
+                <i className={`fa-solid fa-fire ${flameClassName(summary.current_streak)}`} /> {summary.current_streak} day{summary.current_streak === 1 ? '' : 's'}
               </span>
               <span className="text-muted" style={{ fontSize: '0.85rem' }}>
                 <i className="fa-solid fa-champagne-glasses" /> {summary.kudos_count ?? 0} kudos

@@ -6,8 +6,10 @@ import { showToast } from '../components/Toast.jsx';
 import Pagination from '../components/Pagination.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
 import AttributeBar from '../components/system/AttributeBar.jsx';
+import { SkeletonGroup } from '../components/system/Skeleton.jsx';
 import { ApiError } from '../api/apiClient.js';
 import { MOODS } from '../utils/moods.js';
+import { flameClassName } from '../utils/flame.js';
 
 const PAGE_SIZE = 8;
 const HISTORY_WINDOW_DAYS = 365;
@@ -142,7 +144,7 @@ export default function Tracker({ onEditDate }) {
               </div>
             </div>
             <div className="stat-widget bg-warning-alpha">
-              <div className="stat-icon text-warning"><i className="fa-solid fa-fire" /></div>
+              <div className="stat-icon text-warning"><i className={`fa-solid fa-fire ${flameClassName(user?.current_streak)}`} /></div>
               <div className="stat-details">
                 <span className="stat-label">Streak Record</span>
                 <span className="stat-value text-warning">{user?.current_streak ?? 0} Day{(user?.current_streak ?? 0) === 1 ? '' : 's'}</span>
@@ -195,7 +197,7 @@ export default function Tracker({ onEditDate }) {
             <span className="card-action text-muted">{sortedEntries.length} Records</span>
           </div>
           <div className="task-list-wrapper">
-            {progress.rangeLoading && <p className="text-muted">Loading activity log...</p>}
+            {progress.rangeLoading && <SkeletonGroup count={5} height={64} />}
             {!progress.rangeLoading && sortedEntries.length === 0 && (
               <EmptyState
                 icon="fa-book-open"

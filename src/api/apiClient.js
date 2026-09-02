@@ -146,6 +146,20 @@ export const apiClient = {
     return request('DELETE', `/api/habits/${id}`);
   },
 
+  // --- To-dos ---
+  listTodos() {
+    return request('GET', '/api/todos');
+  },
+  createTodo(title, priority) {
+    return request('POST', '/api/todos', { title, priority });
+  },
+  updateTodo(id, patch) {
+    return request('PATCH', `/api/todos/${id}`, patch);
+  },
+  deleteTodo(id) {
+    return request('DELETE', `/api/todos/${id}`);
+  },
+
   // --- Focus / meditation sessions ---
   logFocusSession(sessionType, durationMinutes) {
     return request('POST', '/api/focus-sessions', { session_type: sessionType, duration_minutes: durationMinutes });

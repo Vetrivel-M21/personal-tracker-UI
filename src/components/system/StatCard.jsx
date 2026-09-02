@@ -4,6 +4,7 @@ export default function StatCard({
   icon,
   iconBg = 'bg-indigo-alpha',
   iconStyle,
+  iconClassName = '',
   label,
   value,
   valueStyle,
@@ -13,7 +14,7 @@ export default function StatCard({
   return (
     <div className="card glass-card stat-card" style={cardStyle}>
       <div className={`card-icon ${iconBg}`} style={iconStyle}>
-        <i className={`fa-solid ${icon}`} />
+        <i className={`fa-solid ${icon} ${iconClassName}`} />
       </div>
       <div className="stat-info" style={{ flex: 1 }}>
         <h3>{label}</h3>

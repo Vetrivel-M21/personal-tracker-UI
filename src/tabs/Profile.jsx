@@ -5,7 +5,9 @@ import RankBadge from '../components/RankBadge.jsx';
 import ExpBar from '../components/system/ExpBar.jsx';
 import StatCard from '../components/system/StatCard.jsx';
 import AttributeBar from '../components/system/AttributeBar.jsx';
+import { SkeletonGroup } from '../components/system/Skeleton.jsx';
 import { computeAttributes } from '../utils/attributes.js';
+import { flameClassName } from '../utils/flame.js';
 
 // Character-sheet screen: consolidates the level/rank/XP already shown in
 // the Sidebar into a centerpiece, plus the Attributes panel (backed only by
@@ -46,6 +48,7 @@ export default function Profile() {
           icon="fa-fire"
           iconBg="bg-orange-alpha"
           iconStyle={{ color: 'var(--orange)' }}
+          iconClassName={flameClassName(user?.current_streak)}
           label="Current Streak"
           value={`${user?.current_streak ?? 0} Day${(user?.current_streak ?? 0) === 1 ? '' : 's'}`}
           valueStyle={{ color: 'var(--orange)' }}
@@ -66,7 +69,7 @@ export default function Profile() {
           <h2>Attributes</h2>
           <span className="text-muted" style={{ fontSize: '0.8rem' }}>Trailing 90 days</span>
         </div>
-        {loading && <p className="text-muted">Calculating attributes...</p>}
+        {loading && <SkeletonGroup count={4} height={40} />}
         {!loading && attributes && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             {attributes.map((attr) => <AttributeBar key={attr.code} {...attr} />)}

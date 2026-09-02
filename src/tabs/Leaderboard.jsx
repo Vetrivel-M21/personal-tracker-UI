@@ -5,7 +5,10 @@ import { showToast } from '../components/Toast.jsx';
 import Pagination from '../components/Pagination.jsx';
 import LevelBadge from '../components/LevelBadge.jsx';
 import RankBadge from '../components/RankBadge.jsx';
+import LeaderboardPodium from '../components/LeaderboardPodium.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
+import { SkeletonGroup } from '../components/system/Skeleton.jsx';
+import { flameClassName } from '../utils/flame.js';
 
 const PAGE_SIZE = 20;
 
@@ -66,7 +69,7 @@ export default function Leaderboard() {
         </div>
       </div>
 
-      {loading && <p className="text-muted" style={{ padding: '2rem 1.5rem' }}>Synchronizing rankings...</p>}
+      {loading && <div style={{ padding: '1.5rem' }}><SkeletonGroup count={6} height={44} /></div>}
 
       {!loading && entries.length === 0 && (
         <EmptyState
@@ -74,6 +77,10 @@ export default function Leaderboard() {
           title="No Hunters Ranked Yet"
           message="Be the first to log a habit and claim the top spot."
         />
+      )}
+
+      {!loading && entries.length >= 3 && page === 1 && (
+        <LeaderboardPodium entries={entries.slice(0, 3)} currentUserId={user?.id} sort={sort} />
       )}
 
       {!loading && entries.length > 0 && (
@@ -107,7 +114,7 @@ export default function Leaderboard() {
                     <td data-label="Rank"><RankBadge xp={row.xp} /></td>
                     <td data-label="XP">{row.xp}</td>
                     <td data-label="Streak">
-                      <i className="fa-solid fa-fire text-orange" /> {row.current_streak}
+                      <i className={`fa-solid fa-fire text-orange ${flameClassName(row.current_streak)}`} /> {row.current_streak}
                     </td>
                   </tr>
                 );

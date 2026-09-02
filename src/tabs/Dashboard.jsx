@@ -8,8 +8,10 @@ import SystemAnnouncement from '../components/SystemAnnouncement.jsx';
 import StatCard from '../components/system/StatCard.jsx';
 import QuestCard from '../components/system/QuestCard.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
+import { SkeletonGroup } from '../components/system/Skeleton.jsx';
 import { ApiError } from '../api/apiClient.js';
 import { MOODS } from '../utils/moods.js';
+import { flameClassName } from '../utils/flame.js';
 
 function todayStr() {
   const d = new Date();
@@ -116,9 +118,13 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [habits.length]);
 
+  // Fires immediately in parallel with the habits fetch (not gated on
+  // habitsLoading) - it only needs habits.length to compute the ratio once
+  // the range response is back, not to make the request itself. Waiting on
+  // habits first was serializing two independent round-trips for no reason.
   useEffect(() => {
-    if (!habitsLoading) reloadRangeStats();
-  }, [habitsLoading, reloadRangeStats]);
+    reloadRangeStats();
+  }, [reloadRangeStats]);
 
   function toggleHabit(id) {
     setCheckedIds((prev) => {
@@ -184,6 +190,7 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
           icon="fa-fire"
           iconBg="bg-orange-alpha"
           iconStyle={{ color: 'var(--orange)' }}
+          iconClassName={flameClassName(user?.current_streak)}
           label="Current Streak"
           value={`${user?.current_streak ?? 0} Day${(user?.current_streak ?? 0) === 1 ? '' : 's'}`}
           valueStyle={{ color: 'var(--orange)' }}
@@ -228,7 +235,7 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
           </div>
           <form onSubmit={handleSubmit}>
             <div className="habit-checklist-group">
-              {habitsLoading && <p className="text-muted">Loading habits...</p>}
+              {habitsLoading && <SkeletonGroup count={4} height={56} />}
               {!habitsLoading && habits.length === 0 && (
                 <EmptyState icon="fa-list-check" title="No Quests Configured" message="No habits set up yet for your daily quest log." />
               )}

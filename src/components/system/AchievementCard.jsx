@@ -2,9 +2,9 @@
 // `earned` is recomputed live from real data on every render (see
 // utils/achievements.js) - there is no persisted "unlocked on" date, so this
 // reflects current standing rather than a permanent trophy.
-export default function AchievementCard({ icon, name, description, tier = 1, earned }) {
+export default function AchievementCard({ icon, name, description, tier = 1, earned, celebrate = false }) {
   return (
-    <div className={`skill-node${earned ? ' unlocked' : ' locked'}`}>
+    <div className={`skill-node${earned ? ' unlocked' : ' locked'}${celebrate ? ' just-earned' : ''}`}>
       <div className="skill-node-header">
         <span className="skill-node-title">
           <i className={`fa-solid ${icon}`} style={{ marginRight: 6 }} />

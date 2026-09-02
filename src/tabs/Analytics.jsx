@@ -6,6 +6,7 @@ import { apiClient, ApiError } from '../api/apiClient.js';
 import { useHabits } from '../hooks/useHabits.js';
 import { showToast } from '../components/Toast.jsx';
 import ActivityHeatmap from '../components/system/ActivityHeatmap.jsx';
+import { Skeleton } from '../components/system/Skeleton.jsx';
 import { ChartTooltip, axisProps, gridProps, CHART_COLORS } from '../components/system/ChartTheme.jsx';
 import {
   buildCompletionSeries, buildXpSeries, buildVolumeSeries, fetchWorkoutSessionsSince,
@@ -81,7 +82,13 @@ export default function Analytics() {
         <p className="text-muted" style={{ fontSize: '0.8rem' }}>Covering the last {RANGE_DAYS} days.</p>
       </div>
 
-      {loading && <p className="text-muted" style={{ marginTop: '1rem' }}>Compiling system statistics...</p>}
+      {loading && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+          <Skeleton height={260} />
+          <Skeleton height={260} />
+          <Skeleton height={260} />
+        </div>
+      )}
 
       {!loading && (
         <>

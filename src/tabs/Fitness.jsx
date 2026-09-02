@@ -4,6 +4,7 @@ import { showToast } from '../components/Toast.jsx';
 import SplitBuilderModal from '../components/SplitBuilderModal.jsx';
 import CalisthenicsSkillTree from '../components/CalisthenicsSkillTree.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
+import { SkeletonGroup } from '../components/system/Skeleton.jsx';
 
 function todayStr() {
   const d = new Date();
@@ -258,7 +259,7 @@ export default function Fitness() {
         <div style={{ padding: '1.5rem' }}>
           {view === 'splits' && (
             <>
-              {splitsLoading && <p className="text-muted">Loading your training splits...</p>}
+              {splitsLoading && <SkeletonGroup count={3} height={52} />}
               {!splitsLoading && mySplits.length === 0 && (
                 <p className="text-muted">No splits yet -- create a custom one below, or browse templates.</p>
               )}
@@ -299,7 +300,7 @@ export default function Fitness() {
 
           {view === 'templates' && (
             <>
-              {templatesLoading && <p className="text-muted">Loading training programs...</p>}
+              {templatesLoading && <SkeletonGroup count={3} height={52} />}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {templates.map((t) => (
                   <div key={t.id} className="skill-node available" style={{ padding: '1rem' }}>
@@ -422,7 +423,7 @@ export default function Fitness() {
               <h2>Recent Sessions</h2>
             </div>
             <div className="task-list-wrapper">
-              {sessionsLoading && <p className="text-muted" style={{ padding: '1.5rem' }}>Loading recent sessions...</p>}
+              {sessionsLoading && <SkeletonGroup count={3} height={72} />}
               {!sessionsLoading && sessions.length === 0 && (
                 <EmptyState icon="fa-dumbbell" title="No Sessions Logged" message="Log your first training session below." />
               )}

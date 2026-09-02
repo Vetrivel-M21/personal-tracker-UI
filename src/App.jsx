@@ -10,6 +10,7 @@ import Settings from './tabs/Settings.jsx';
 import Profile from './tabs/Profile.jsx';
 import Achievements from './tabs/Achievements.jsx';
 import Analytics from './tabs/Analytics.jsx';
+import Todo from './tabs/Todo.jsx';
 import Sidebar from './components/Sidebar.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import Toast from './components/Toast.jsx';
@@ -24,6 +25,7 @@ const TABS = [
   { id: 'fitness', label: 'Workout Split', icon: 'fa-dumbbell', component: Fitness, primary: true },
   { id: 'leaderboard', label: 'Leaderboard', icon: 'fa-trophy', component: Leaderboard, primary: true },
   { id: 'community', label: 'Community', icon: 'fa-users', component: Community },
+  { id: 'todo', label: 'To-Do', icon: 'fa-list-check', component: Todo },
   { id: 'profile', label: 'Profile', icon: 'fa-id-badge', component: Profile },
   { id: 'achievements', label: 'Milestones', icon: 'fa-medal', component: Achievements },
   { id: 'analytics', label: 'Analytics', icon: 'fa-chart-line', component: Analytics },
