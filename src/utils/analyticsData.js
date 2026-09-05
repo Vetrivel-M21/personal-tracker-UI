@@ -1,5 +1,6 @@
 // Pure aggregation helpers + one paginated fetch for the Analytics screen.
 import { apiClient } from '../api/apiClient.js';
+import { dueHabitsOn } from './schedule.js';
 
 function bucketKey(dateStr, granularity) {
   const d = new Date(`${dateStr}T00:00:00`);
@@ -25,15 +26,21 @@ function sortedBuckets(map) {
 }
 
 // Real aggregation: habit-completion % and learning hours per bucket.
-export function buildCompletionSeries(rangeEntries, habitCount, granularity = 'week') {
+// completionPct divides by each day's actual due-habit count (respecting
+// per-habit schedules), not a flat total, so a habit scheduled for only a
+// few days a week doesn't drag the average down on its off-days.
+export function buildCompletionSeries(rangeEntries, habits, granularity = 'week') {
   const buckets = new Map();
   for (const entry of rangeEntries) {
     const key = bucketKey(entry.date, granularity);
     if (!buckets.has(key)) buckets.set(key, { completedSum: 0, dayCount: 0, learningHours: 0 });
     const b = buckets.get(key);
     const completed = Array.isArray(entry.completed_habit_ids) ? entry.completed_habit_ids.length : 0;
-    b.completedSum += habitCount > 0 ? completed / habitCount : 0;
-    b.dayCount += 1;
+    const dueThatDay = dueHabitsOn(habits, new Date(`${entry.date}T00:00:00`)).length;
+    if (dueThatDay > 0) {
+      b.completedSum += completed / dueThatDay;
+      b.dayCount += 1;
+    }
     b.learningHours += Number(entry.learning_hours) || 0;
   }
   return sortedBuckets(buckets).map(([key, b]) => ({

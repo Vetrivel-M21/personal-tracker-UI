@@ -59,8 +59,8 @@ export default function Analytics() {
   }, []);
 
   const completionSeries = useMemo(
-    () => buildCompletionSeries(rangeEntries, habits.length, granularity),
-    [rangeEntries, habits.length, granularity],
+    () => buildCompletionSeries(rangeEntries, habits, granularity),
+    [rangeEntries, habits, granularity],
   );
   const xpSeries = useMemo(() => buildXpSeries(rangeEntries, granularity), [rangeEntries, granularity]);
   const volumeSeries = useMemo(() => buildVolumeSeries(sessions, granularity), [sessions, granularity]);
@@ -147,7 +147,7 @@ export default function Analytics() {
 
           <div style={{ marginTop: '1rem' }}>
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.1rem', marginBottom: '0.75rem' }}>Activity Heatmap</h2>
-            <ActivityHeatmap entries={rangeEntries} habitCount={habits.length} days={182} />
+            <ActivityHeatmap entries={rangeEntries} habits={habits} days={182} />
           </div>
         </>
       )}

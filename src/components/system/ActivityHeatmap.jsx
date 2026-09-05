@@ -1,4 +1,5 @@
 import { levelForRatio } from '../../utils/habitLevel.js';
+import { dueHabitsOn } from '../../utils/schedule.js';
 
 // GitHub-style activity heatmap - wires up the .habit-heatmap/.heatmap-day/
 // .level-0..3 CSS that already existed in style.css but nothing rendered.
@@ -7,7 +8,7 @@ function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export default function ActivityHeatmap({ entries, habitCount, days = 182 }) {
+export default function ActivityHeatmap({ entries, habits, days = 182 }) {
   const byDate = {};
   (entries || []).forEach((e) => { byDate[e.date] = e; });
 
@@ -23,12 +24,13 @@ export default function ActivityHeatmap({ entries, habitCount, days = 182 }) {
     const key = dateKey(d);
     const entry = byDate[key];
     const completed = entry && Array.isArray(entry.completed_habit_ids) ? entry.completed_habit_ids.length : 0;
-    const ratio = habitCount > 0 ? completed / habitCount : 0;
+    const dueThatDay = dueHabitsOn(habits, d).length;
+    const ratio = dueThatDay > 0 ? completed / dueThatDay : 0;
     cells.push({
       key,
       date: d,
       level: levelForRatio(ratio),
-      title: `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${completed}/${habitCount} habits`,
+      title: `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}: ${completed}/${dueThatDay} habits`,
     });
   }
 
