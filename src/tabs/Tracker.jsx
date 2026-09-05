@@ -4,6 +4,7 @@ import { useHabits } from '../hooks/useHabits.js';
 import { useProgress } from '../hooks/useProgress.js';
 import { showToast } from '../components/Toast.jsx';
 import Pagination from '../components/Pagination.jsx';
+import CalendarMonth from '../components/CalendarMonth.jsx';
 import EmptyState from '../components/system/EmptyState.jsx';
 import AttributeBar from '../components/system/AttributeBar.jsx';
 import { SkeletonGroup } from '../components/system/Skeleton.jsx';
@@ -27,6 +28,7 @@ export default function Tracker({ onEditDate }) {
 
   const [filterDate, setFilterDate] = useState(todayStr());
   const [page, setPage] = useState(1);
+  const [ledgerView, setLedgerView] = useState('list');
   const [monthLearningHours, setMonthLearningHours] = useState(0);
   const [monthCompletionPct, setMonthCompletionPct] = useState(0);
 
@@ -195,10 +197,30 @@ export default function Tracker({ onEditDate }) {
         </div>
 
         <div className="card glass-card" style={{ padding: 0 }}>
-          <div className="card-header border-bottom">
+          <div className="card-header border-bottom" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
             <h2>Activity Ledger</h2>
-            <span className="card-action text-muted">{sortedEntries.length} Records</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span className="card-action text-muted">{sortedEntries.length} Records</span>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button
+                  type="button" className={`btn btn-sm ${ledgerView === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setLedgerView('list')}
+                >
+                  List
+                </button>
+                <button
+                  type="button" className={`btn btn-sm ${ledgerView === 'calendar' ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setLedgerView('calendar')}
+                >
+                  Calendar
+                </button>
+              </div>
+            </div>
           </div>
+          {ledgerView === 'calendar' && (
+            <CalendarMonth entries={sortedEntries} habits={habits} onSelectDate={(date) => onEditDate?.(date)} />
+          )}
+          {ledgerView === 'list' && (
           <div className="task-list-wrapper">
             {progress.rangeLoading && <SkeletonGroup count={5} height={64} />}
             {!progress.rangeLoading && sortedEntries.length === 0 && (
@@ -263,7 +285,8 @@ export default function Tracker({ onEditDate }) {
               );
             })}
           </div>
-          {sortedEntries.length > 0 && (
+          )}
+          {ledgerView === 'list' && sortedEntries.length > 0 && (
             <Pagination
               page={page}
               totalPages={totalPages}

@@ -3357,3 +3357,67 @@ body.emerald-theme {
     border-color: var(--primary);
     color: var(--primary);
 }
+
+/* Calendar month view (Tracker's Activity Ledger) */
+.calendar-month {
+    padding: 0 0 1.5rem 0;
+}
+.calendar-month-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+}
+.calendar-month-header span {
+    font-family: var(--font-heading);
+    font-weight: 600;
+}
+.calendar-weekday-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    padding: 0 1.5rem;
+    margin-bottom: 6px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: center;
+}
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    padding: 0 1.5rem;
+}
+.calendar-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.02);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+.calendar-cell.blank {
+    border: none;
+    background: none;
+    cursor: default;
+}
+.calendar-cell:hover:not(:disabled) {
+    border-color: var(--border-color-hover);
+    color: var(--text-primary);
+}
+.calendar-cell:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+.calendar-cell.today {
+    box-shadow: 0 0 0 2px var(--primary);
+    font-weight: 700;
+}
+.calendar-cell.level-3 {
+    color: white;
+}

@@ -1,15 +1,10 @@
+import { levelForRatio } from '../../utils/habitLevel.js';
+
 // GitHub-style activity heatmap - wires up the .habit-heatmap/.heatmap-day/
 // .level-0..3 CSS that already existed in style.css but nothing rendered.
 // Fed by the same listProgress range data Tracker/Dashboard already fetch.
 function dateKey(d) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
-
-function levelForRatio(ratio) {
-  if (ratio <= 0) return 0;
-  if (ratio < 0.5) return 1;
-  if (ratio < 1) return 2;
-  return 3;
 }
 
 export default function ActivityHeatmap({ entries, habitCount, days = 182 }) {
