@@ -12,6 +12,7 @@ import { SkeletonGroup } from '../components/system/Skeleton.jsx';
 import { ApiError } from '../api/apiClient.js';
 import { MOODS } from '../utils/moods.js';
 import { flameClassName } from '../utils/flame.js';
+import { dueHabitsOn } from '../utils/schedule.js';
 
 function todayStr() {
   const d = new Date();
@@ -102,21 +103,25 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
       const byDate = {};
       rows.forEach((r) => { byDate[r.date] = r; });
       let completionSum = 0;
-      const totalHabits = habits.length;
+      let daysCounted = 0;
       for (let i = 0; i < 7; i++) {
         const d = new Date(today);
         d.setDate(d.getDate() - i);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
         const row = byDate[key];
         const completed = row && Array.isArray(row.completed_habit_ids) ? row.completed_habit_ids.length : 0;
-        completionSum += totalHabits > 0 ? completed / totalHabits : 0;
+        const dueToday = dueHabitsOn(habits, d).length;
+        if (dueToday > 0) {
+          completionSum += completed / dueToday;
+          daysCounted++;
+        }
       }
-      setWeeklyCompletionPct(Math.round((completionSum / 7) * 100));
+      setWeeklyCompletionPct(daysCounted > 0 ? Math.round((completionSum / daysCounted) * 100) : 0);
     } catch {
       // Leave previous values in place on failure.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habits.length]);
+  }, [habits]);
 
   // Fires immediately in parallel with the habits fetch (not gated on
   // habitsLoading) - it only needs habits.length to compute the ratio once
@@ -134,7 +139,17 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
     });
   }
 
-  const liveAuraScore = calculateAuraScore(checkedIds.size, habits.length, Number(learningHours) || 0, mood);
+  const selectedDateObj = useMemo(() => new Date(`${selectedDate}T00:00:00`), [selectedDate]);
+  const dueHabits = useMemo(() => dueHabitsOn(habits, selectedDateObj), [habits, selectedDateObj]);
+  // Keep an already-checked habit visible even if its schedule no longer
+  // includes this weekday, so a past log never visually loses a completion.
+  const visibleHabits = useMemo(() => {
+    const dueIds = new Set(dueHabits.map((h) => h.id));
+    const extras = habits.filter((h) => !dueIds.has(h.id) && checkedIds.has(h.id));
+    return [...dueHabits, ...extras];
+  }, [habits, dueHabits, checkedIds]);
+
+  const liveAuraScore = calculateAuraScore(checkedIds.size, dueHabits.length, Number(learningHours) || 0, mood);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -194,7 +209,7 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
           label="Current Streak"
           value={`${user?.current_streak ?? 0} Day${(user?.current_streak ?? 0) === 1 ? '' : 's'}`}
           valueStyle={{ color: 'var(--orange)' }}
-          sublabel={`🛡️ ${user?.shields_remaining ?? 0} Shields Active`}
+          sublabel={`🛡️ ${user?.shields_remaining ?? 0} Shield${(user?.shields_remaining ?? 0) === 1 ? '' : 's'} — auto-covers a missed day, earned every 7-day streak`}
         />
 
         <StatCard
@@ -239,7 +254,10 @@ export default function Dashboard({ focusDate, onFocusDateConsumed }) {
               {!habitsLoading && habits.length === 0 && (
                 <EmptyState icon="fa-list-check" title="No Quests Configured" message="No habits set up yet for your daily quest log." />
               )}
-              {habits.map((habit) => (
+              {!habitsLoading && habits.length > 0 && visibleHabits.length === 0 && (
+                <EmptyState icon="fa-mug-hot" title="Nothing Due Today" message="No scheduled habits for this day -- enjoy the rest." />
+              )}
+              {visibleHabits.map((habit) => (
                 <QuestCard
                   key={habit.id}
                   icon={habit.icon}

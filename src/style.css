@@ -3331,3 +3331,29 @@ body.emerald-theme {
     0% { background-position: 200% 0; }
     100% { background-position: -200% 0; }
 }
+
+/* Habit schedule day-of-week toggles */
+.day-toggle-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+.day-toggle-btn {
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: var(--transition-fast);
+}
+.day-toggle-btn:hover {
+    border-color: var(--border-color-hover);
+    color: var(--text-primary);
+}
+.day-toggle-btn.selected {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+}

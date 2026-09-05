@@ -24,8 +24,14 @@ export function useHabits() {
     reload();
   }, [reload]);
 
-  const createHabit = useCallback(async (name, color, icon) => {
-    const habit = await apiClient.createHabit(name, color, icon);
+  const createHabit = useCallback(async (name, color, icon, schedule) => {
+    const habit = await apiClient.createHabit(name, color, icon, schedule);
+    await reload();
+    return habit;
+  }, [reload]);
+
+  const updateHabit = useCallback(async (id, patch) => {
+    const habit = await apiClient.updateHabit(id, patch);
     await reload();
     return habit;
   }, [reload]);
@@ -35,7 +41,7 @@ export function useHabits() {
     await reload();
   }, [reload]);
 
-  return { habits, loading, error, reload, createHabit, deleteHabit };
+  return { habits, loading, error, reload, createHabit, updateHabit, deleteHabit };
 }
 
 export default useHabits;

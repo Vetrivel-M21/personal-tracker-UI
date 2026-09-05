@@ -139,11 +139,20 @@ export const apiClient = {
   listHabits() {
     return request('GET', '/api/habits');
   },
-  createHabit(name, color, icon) {
-    return request('POST', '/api/habits', { name, color, icon });
+  listArchivedHabits() {
+    return request('GET', '/api/habits?archived=true');
+  },
+  createHabit(name, color, icon, schedule) {
+    return request('POST', '/api/habits', { name, color, icon, schedule });
+  },
+  updateHabit(id, patch) {
+    return request('PATCH', `/api/habits/${id}`, patch);
   },
   deleteHabit(id) {
     return request('DELETE', `/api/habits/${id}`);
+  },
+  restoreHabit(id) {
+    return request('POST', `/api/habits/${id}/restore`);
   },
 
   // --- To-dos ---

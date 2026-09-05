@@ -52,7 +52,7 @@ export default function Profile() {
           label="Current Streak"
           value={`${user?.current_streak ?? 0} Day${(user?.current_streak ?? 0) === 1 ? '' : 's'}`}
           valueStyle={{ color: 'var(--orange)' }}
-          sublabel={`🛡️ ${user?.shields_remaining ?? 0} Shields Active`}
+          sublabel={`🛡️ ${user?.shields_remaining ?? 0} Shield${(user?.shields_remaining ?? 0) === 1 ? '' : 's'} — auto-covers a missed day, earned every 7-day streak`}
         />
         <StatCard
           icon="fa-bolt"

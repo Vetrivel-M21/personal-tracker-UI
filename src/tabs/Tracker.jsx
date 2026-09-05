@@ -10,6 +10,7 @@ import { SkeletonGroup } from '../components/system/Skeleton.jsx';
 import { ApiError } from '../api/apiClient.js';
 import { MOODS } from '../utils/moods.js';
 import { flameClassName } from '../utils/flame.js';
+import { dueHabitsOn } from '../utils/schedule.js';
 
 const PAGE_SIZE = 8;
 const HISTORY_WINDOW_DAYS = 365;
@@ -39,20 +40,22 @@ export default function Tracker({ onEditDate }) {
       const monthPrefix = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       const monthRows = rows.filter((r) => r.date.startsWith(monthPrefix));
       setMonthLearningHours(monthRows.reduce((sum, r) => sum + (Number(r.learning_hours) || 0), 0));
-      if (monthRows.length > 0 && habits.length > 0) {
-        const avg = monthRows.reduce((sum, r) => {
-          const completed = Array.isArray(r.completed_habit_ids) ? r.completed_habit_ids.length : 0;
-          return sum + completed / habits.length;
-        }, 0) / monthRows.length;
-        setMonthCompletionPct(Math.round(avg * 100));
-      } else {
-        setMonthCompletionPct(0);
-      }
+      let sum = 0;
+      let daysCounted = 0;
+      monthRows.forEach((r) => {
+        const completed = Array.isArray(r.completed_habit_ids) ? r.completed_habit_ids.length : 0;
+        const dueThatDay = dueHabitsOn(habits, new Date(`${r.date}T00:00:00`)).length;
+        if (dueThatDay > 0) {
+          sum += completed / dueThatDay;
+          daysCounted++;
+        }
+      });
+      setMonthCompletionPct(daysCounted > 0 ? Math.round((sum / daysCounted) * 100) : 0);
     } catch {
       // keep previous values on failure
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [habits.length]);
+  }, [habits]);
 
   useEffect(() => { reload(); }, [reload]);
 

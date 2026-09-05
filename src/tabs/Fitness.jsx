@@ -37,6 +37,7 @@ export default function Fitness() {
   const [adHocLabel, setAdHocLabel] = useState('');
   const [setRows, setSetRows] = useState([newSetRow()]);
   const [logging, setLogging] = useState(false);
+  const [editingSessionId, setEditingSessionId] = useState(null);
 
   const [sessions, setSessions] = useState([]);
   const [sessionsLoading, setSessionsLoading] = useState(true);
@@ -160,6 +161,16 @@ export default function Fitness() {
     }
   }
 
+  async function handleDeactivateSplit() {
+    try {
+      await apiClient.deactivateWorkoutSplit();
+      await Promise.all([loadMySplits(), loadActiveSplit()]);
+      showToast('Split deactivated.');
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Failed to deactivate split.', true);
+    }
+  }
+
   function handlePickDay(dayId) {
     setSelectedDayId(dayId);
     if (!dayId) {
@@ -204,24 +215,70 @@ export default function Fitness() {
       return;
     }
 
+    const payload = {
+      splitDayId: usingDay ? selectedDayId : null,
+      splitId: usingDay ? activeSplit?.id : null,
+      label: usingDay ? '' : adHocLabel.trim(),
+      sessionDate,
+      notes: '',
+      sets,
+    };
+    const wasEditing = editingSessionId;
+
     setLogging(true);
     try {
-      await apiClient.logWorkoutSession({
-        splitDayId: usingDay ? selectedDayId : null,
-        splitId: usingDay ? activeSplit?.id : null,
-        label: usingDay ? '' : adHocLabel.trim(),
-        sessionDate,
-        notes: '',
-        sets,
-      });
-      showToast('Session logged!');
+      if (wasEditing) {
+        await apiClient.updateWorkoutSession(wasEditing, payload);
+        showToast('Session updated!');
+        setEditingSessionId(null);
+      } else {
+        await apiClient.logWorkoutSession(payload);
+        showToast('Session logged!');
+      }
       setSetRows([newSetRow()]);
       setAdHocLabel('');
+      setSelectedDayId('');
       await Promise.all([loadSessions(), loadExerciseNames()]);
     } catch (err) {
-      showToast(err instanceof ApiError ? err.message : 'Failed to log session.', true);
+      showToast(err instanceof ApiError ? err.message : `Failed to ${wasEditing ? 'update' : 'log'} session.`, true);
     } finally {
       setLogging(false);
+    }
+  }
+
+  function handleEditSession(s) {
+    setEditingSessionId(s.id);
+    setSessionDate(s.session_date);
+    const dayStillValid = s.split_day_id && activeSplit?.days?.some((d) => d.id === s.split_day_id);
+    if (dayStillValid) {
+      setSelectedDayId(s.split_day_id);
+      setAdHocLabel('');
+    } else {
+      setSelectedDayId('');
+      setAdHocLabel(s.day_label || '');
+    }
+    setSetRows(s.sets.length > 0
+      ? s.sets.map((set) => ({ ...newSetRow(set.exercise_name), reps: String(set.reps), weightKg: set.weight_kg != null ? String(set.weight_kg) : '' }))
+      : [newSetRow()]);
+  }
+
+  function handleCancelEditSession() {
+    setEditingSessionId(null);
+    setSessionDate(todayStr());
+    setSelectedDayId('');
+    setAdHocLabel('');
+    setSetRows([newSetRow()]);
+  }
+
+  async function handleDeleteSession(id) {
+    if (!window.confirm('Delete this logged session?')) return;
+    try {
+      await apiClient.deleteWorkoutSession(id);
+      if (editingSessionId === id) handleCancelEditSession();
+      await loadSessions();
+      showToast('Session deleted.');
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Failed to delete session.', true);
     }
   }
 
@@ -275,6 +332,9 @@ export default function Fitness() {
                     <div style={{ display: 'flex', gap: 6 }}>
                       {!s.is_active && (
                         <button type="button" className="btn btn-secondary btn-sm" onClick={() => handleSetActive(s.id)}>Set Active</button>
+                      )}
+                      {s.is_active && (
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={handleDeactivateSplit}>Deactivate</button>
                       )}
                       <button type="button" className="btn-icon" title="Edit" onClick={() => setBuilderSplitId(s.id)}>
                         <i className="fa-solid fa-pen" />
@@ -345,7 +405,7 @@ export default function Fitness() {
         <div className="pane-left">
           <div className="card glass-card" style={{ padding: '1.5rem' }}>
             <div className="card-header border-bottom" style={{ padding: '0 0 1rem 0', marginBottom: '1.25rem' }}>
-              <h2>Log a Session</h2>
+              <h2>{editingSessionId ? 'Edit Session' : 'Log a Session'}</h2>
             </div>
             <form onSubmit={handleLogSession}>
               <div className="form-row">
@@ -410,9 +470,15 @@ export default function Fitness() {
                 </button>
               </div>
 
-              <button type="submit" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} disabled={logging}>
-                <i className="fa-solid fa-floppy-disk" /> {logging ? 'Logging...' : 'Log Session'}
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="submit" className="btn btn-primary" style={{ flex: 1, justifyContent: 'center' }} disabled={logging}>
+                  <i className="fa-solid fa-floppy-disk" />{' '}
+                  {logging ? (editingSessionId ? 'Updating...' : 'Logging...') : (editingSessionId ? 'Update Session' : 'Log Session')}
+                </button>
+                {editingSessionId && (
+                  <button type="button" className="btn btn-secondary" onClick={handleCancelEditSession}>Cancel</button>
+                )}
+              </div>
             </form>
           </div>
         </div>
@@ -445,7 +511,21 @@ export default function Fitness() {
                       <i className="fa-regular fa-calendar" style={{ color: 'var(--primary)' }} />{' '}
                       {new Date(`${s.session_date}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} &middot; {s.day_label}
                     </div>
-                    <span className="text-muted">{s.sets.length} set{s.sets.length === 1 ? '' : 's'}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span className="text-muted">{s.sets.length} set{s.sets.length === 1 ? '' : 's'}</span>
+                      <button
+                        type="button" className="btn-icon" title="Edit session"
+                        onClick={(e) => { e.stopPropagation(); handleEditSession(s); }}
+                      >
+                        <i className="fa-solid fa-pen" />
+                      </button>
+                      <button
+                        type="button" className="btn-icon text-rose" title="Delete session"
+                        onClick={(e) => { e.stopPropagation(); handleDeleteSession(s.id); }}
+                      >
+                        <i className="fa-solid fa-trash-can" />
+                      </button>
+                    </div>
                   </div>
                   {expandedSessionId === s.id && (
                     <div className="ledger-card-body">

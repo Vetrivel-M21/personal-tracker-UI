@@ -12,6 +12,8 @@ export default function SplitBuilderModal({ splitId, open, onClose, onChanged })
   const [newDayName, setNewDayName] = useState('');
   const [expandedDayId, setExpandedDayId] = useState(null);
   const [newExercise, setNewExercise] = useState({ name: '', targetSets: 3, targetReps: '8-12', notes: '' });
+  const [editingExerciseId, setEditingExerciseId] = useState(null);
+  const [editingExercise, setEditingExercise] = useState({ name: '', targetSets: 3, targetReps: '', notes: '' });
 
   const reload = useCallback(async () => {
     if (!splitId) return;
@@ -112,6 +114,40 @@ export default function SplitBuilderModal({ splitId, open, onClose, onChanged })
     }
   }
 
+  function startEditExercise(ex) {
+    setEditingExerciseId(ex.id);
+    setEditingExercise({ name: ex.name, targetSets: ex.target_sets, targetReps: ex.target_reps, notes: ex.notes || '' });
+  }
+
+  async function handleSaveExercise(dayId, exerciseId) {
+    const name = editingExercise.name.trim();
+    const reps = editingExercise.targetReps.trim();
+    if (!name || !reps || editingExercise.targetSets < 1) {
+      showToast('Exercise name, sets and reps are required.', true);
+      return;
+    }
+    try {
+      await apiClient.updateSplitExercise(splitId, dayId, exerciseId, {
+        name, targetSets: Number(editingExercise.targetSets), targetReps: reps, notes: editingExercise.notes.trim(),
+      });
+      setEditingExerciseId(null);
+      await notifyChanged();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Failed to update exercise.', true);
+    }
+  }
+
+  async function handleRenameSplit() {
+    const name = window.prompt('Rename split', split.name);
+    if (!name || !name.trim()) return;
+    try {
+      await apiClient.updateWorkoutSplit(splitId, { name: name.trim() });
+      await notifyChanged();
+    } catch (err) {
+      showToast(err instanceof ApiError ? err.message : 'Failed to rename split.', true);
+    }
+  }
+
   async function handleMoveExercise(day, index, direction) {
     const exercises = [...day.exercises];
     const target = index + direction;
@@ -130,6 +166,13 @@ export default function SplitBuilderModal({ splitId, open, onClose, onChanged })
       {loading && <p className="text-muted">Loading split details...</p>}
       {!loading && split && (
         <>
+          <button
+            type="button" className="btn btn-secondary btn-sm"
+            style={{ marginBottom: '1.25rem' }}
+            onClick={handleRenameSplit}
+          >
+            <i className="fa-solid fa-pen" /> Rename Split
+          </button>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: '1.25rem' }}>
             {split.days.length === 0 && <p className="text-muted">No days yet -- add one below.</p>}
             {split.days.map((day, index) => (
@@ -179,20 +222,48 @@ export default function SplitBuilderModal({ splitId, open, onClose, onChanged })
                 {expandedDayId === day.id && (
                   <div style={{ padding: '0.75rem 1rem', background: 'rgba(255,255,255,0.02)' }}>
                     {day.exercises.map((ex, exIndex) => (
-                      <div key={ex.id} className="habit-manager-item" style={{ marginBottom: 6 }}>
-                        <div className="habit-manager-item-left">
-                          <button type="button" className="btn-icon" onClick={() => handleMoveExercise(day, exIndex, -1)} disabled={exIndex === 0} title="Move up">
-                            <i className="fa-solid fa-chevron-up" />
-                          </button>
-                          <button type="button" className="btn-icon" onClick={() => handleMoveExercise(day, exIndex, 1)} disabled={exIndex === day.exercises.length - 1} title="Move down">
-                            <i className="fa-solid fa-chevron-down" />
-                          </button>
-                          <span>{ex.name} <span className="text-muted">{ex.target_sets}x{ex.target_reps}</span></span>
+                      editingExerciseId === ex.id ? (
+                        <form
+                          key={ex.id}
+                          onSubmit={(e) => { e.preventDefault(); handleSaveExercise(day.id, ex.id); }}
+                          style={{ display: 'flex', gap: 6, marginBottom: 6, flexWrap: 'wrap' }}
+                        >
+                          <input
+                            type="text" placeholder="Exercise name" style={{ flex: 2, minWidth: 140 }}
+                            value={editingExercise.name} onChange={(e) => setEditingExercise((s) => ({ ...s, name: e.target.value }))}
+                          />
+                          <input
+                            type="number" min="1" placeholder="Sets" style={{ width: 70 }}
+                            value={editingExercise.targetSets} onChange={(e) => setEditingExercise((s) => ({ ...s, targetSets: e.target.value }))}
+                          />
+                          <input
+                            type="text" placeholder="Reps (e.g. 8-12)" style={{ width: 110 }}
+                            value={editingExercise.targetReps} onChange={(e) => setEditingExercise((s) => ({ ...s, targetReps: e.target.value }))}
+                          />
+                          <button type="submit" className="btn btn-primary btn-sm">Save</button>
+                          <button type="button" className="btn btn-secondary btn-sm" onClick={() => setEditingExerciseId(null)}>Cancel</button>
+                        </form>
+                      ) : (
+                        <div key={ex.id} className="habit-manager-item" style={{ marginBottom: 6 }}>
+                          <div className="habit-manager-item-left">
+                            <button type="button" className="btn-icon" onClick={() => handleMoveExercise(day, exIndex, -1)} disabled={exIndex === 0} title="Move up">
+                              <i className="fa-solid fa-chevron-up" />
+                            </button>
+                            <button type="button" className="btn-icon" onClick={() => handleMoveExercise(day, exIndex, 1)} disabled={exIndex === day.exercises.length - 1} title="Move down">
+                              <i className="fa-solid fa-chevron-down" />
+                            </button>
+                            <span>{ex.name} <span className="text-muted">{ex.target_sets}x{ex.target_reps}</span></span>
+                          </div>
+                          <div style={{ display: 'flex', gap: 4 }}>
+                            <button type="button" className="btn-icon" title="Edit exercise" onClick={() => startEditExercise(ex)}>
+                              <i className="fa-solid fa-pen" />
+                            </button>
+                            <button type="button" className="btn-icon text-rose" title="Delete exercise" onClick={() => handleDeleteExercise(day.id, ex.id)}>
+                              <i className="fa-solid fa-trash-can" />
+                            </button>
+                          </div>
                         </div>
-                        <button type="button" className="btn-icon text-rose" title="Delete exercise" onClick={() => handleDeleteExercise(day.id, ex.id)}>
-                          <i className="fa-solid fa-trash-can" />
-                        </button>
-                      </div>
+                      )
                     ))}
 
                     <form onSubmit={(e) => handleAddExercise(e, day.id)} style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
